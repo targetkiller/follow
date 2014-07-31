@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<head>
+	<meta charset="UTF-8">
+    <meta name="viewport" content="width=320,initial-scale=1,minimum-scale=1, maximum-scale=1, user-scalable=no">
+	<title>follow!</title>
+	<style>
+		body{margin: 0;background-color: #000;}
+		html{font-family: "Helvetica Neue", Helvetica, STHeiTi, Microsoft yahei, Arial, sans-serif; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;}
+
+		header{height: 50px;width: 100%;background-color: #1abc9c;position: absolute;top: 0;color: yellow;text-align: center;font-size: 22px;line-height: 50px;}
+		footer{height: 70px;width: 100%;background-color: #333;position: absolute;bottom: 0;line-height: 70px;color: yellow;font-size: 22px;text-align: center;}
+		#loader{width: 100%;height: 2px;background-color: #2ecc71;position: absolute;top: 0;}
+		.center{width: 100%;background-color: #000;height: 398px;position: relative;margin-top: 50px;text-align: center;border-color: #fff;}
+		.center .block{width: 33%;height: 33%;}
+		.start{color: #fff;width: 100%;height: 100%;text-decoration: none;display: block;font-size: 24px;background-color: #e74c3c;}
+		.start:active{background-color: #3cedae;}
+		.start:hover{background-color: #098879;}
+		.first{background-color: #e74c3c;}
+		.second{background-color: #1abc9c;}
+
+		.result-wrap{position: absolute;top: 0;left: 0;background-color: rgba(0,0,0,0.7);width: 100%;height: 100%}
+		.result-wrap p{position: absolute;width: 100%;color: #fff;text-align: center;top: 33%;font-size: 22px;}
+		.result-wrap .share-btn,
+		.result-wrap .again{color: #fff;text-decoration: none;position: absolute;top: 50%;left: 50%;background-color: #1abc9c;padding: 10px 15px;border-radius: 6px;
+			transform:translateX(-50%);-webkit-transform:translateX(-50%);-moz-transform:translateX(-50%);}
+		.result-wrap .again{top: 60%;}
+
+		.result-wrap .share-btn:hover,
+		.result-wrap .again:hover,
+		.result-wrap .again:active,
+		.result-wrap .share-btn:active{background-color: #16a085;}
+
+		.start-wrap{position: absolute;top: 0;left: 0;background-color: rgba(0,0,0,0.7);width: 100%;height: 100%}
+		.start-wrap h1{text-align: center;color: #fff;margin: 0;position: absolute;width: 100%;top: 25%;}
+		.start-wrap p{position: absolute;width: 100%;color: #fff;text-align: center;top: 33%;font-size: 18px;}
+		.start-wrap .go-btn{color: #fff;text-decoration: none;position: absolute;top: 50%;left: 50%;background-color: #1abc9c;padding: 10px 15px;border-radius: 6px;
+			transform:translateX(-50%);-webkit-transform:translateX(-50%);-moz-transform:translateX(-50%);}
+		.start-wrap .go-btn:hover,
+		.start-wrap .go-btn:active{background-color: #16a085;}
+		
+		.copyright{position: absolute;bottom: 0;color: #fff;height: 30px;width: 100%;line-height: 30px;text-align: center;font-size: 14px;}
+
+		.hide{display: none;}
+	</style>
+</head>
+<body>
+	<header><a href="javascript:void(0)" class="start">开始</a><span id="score" class="hide">0</span></header>
+	<table class="center" border="1">
+		<tr>
+			<td class="block"></td>
+			<td class="block"></td>
+			<td class="block"></td>
+		</tr>
+		<tr>
+			<td class="block"></td>
+			<td class="block"></td>
+			<td class="block"></td>
+		</tr>
+		<tr>
+			<td class="block"></td>
+			<td class="block"></td>
+			<td class="block"></td>
+		</tr>
+	</table>
+	<footer><div id="loader"></div><span class="time-wrap"><span id="time">15</span>s</span></footer>
+
+	<div class="result-wrap hide">
+		<p>你的得分是：<span id="result-score"></span><br>恭喜你击败了全国<span id="result-percent"></span>的人！</p>
+		<a href="javascript:void(0)" class="share-btn">晒给朋友看看</a>
+		<a href="javascript:void(0)" class="again">不服再战</a>
+		<div class="copyright">copyright @托尼托尼研究所</div>
+	</div>
+
+	<div class="start-wrap">
+		<h1>follow!</h1>
+		<p>游戏规则：15秒内点击出现的方块，点击越多越好！看谁能最高分？</p>
+		<a href="javascript:void(0)" class="go-btn">朕知道了</a>
+		<div class="copyright">copyright @托尼托尼研究所</div>
+	</div>
+	<script src="jquery.js"></script>
+	<!-- <script src="jgestures.min.js"></script> -->
+	<script>
+		var score = 0;
+		var totalTime = 15;
+		var time = totalTime;
+		var time_cut = 0.01;
+		var lastTime = 500;
+		var occurTime = 350;
+		var num = $('.block').length;
+		var timeInter;
+		var startInter;
+
+		$('.start').click(function(event) {
+			$(this).addClass('hide');
+			$('#score').removeClass('hide');
+
+			// 开启时间计时器
+			timeInter = setInterval(function(){
+				if(time < 8 && time > 3){
+					occurTime = 250;
+				}
+				else if(time < 3 && time > 0){
+					$('#loader').css('background-color','red');
+				}
+				else if(time < 0){
+					gameover();
+				}
+				time -= time_cut;
+				updateTime();
+
+			},10);
+
+			// 开始格子变动计时器
+			startInter = setInterval(function(){
+				var $this = $('.block:eq('+ran()+')');
+				$this.addClass('first');
+				setTimeout(function(){$this.removeClass('first')},lastTime);
+			},occurTime);
+		});
+
+
+		$('.again').click((function(event) {
+			time = totalTime;
+			score = 0;
+			$('.time-wrap').removeClass('hide');
+			// $('.again').addClass('hide');
+			// $('.start').removeClass('hide');
+			// $('.score').addClass('hide');
+			$('.result-wrap').addClass('hide');
+			updateTime();
+			updateScore();
+			$('.start').click();
+		}));
+
+		$('.go-btn').click((function(event) {
+			$('.start-wrap').addClass('hide');
+		}));
+
+		function gameover(){
+			$('.time-wrap').addClass('hide');
+			// $('.again').removeClass('hide');
+			clearInterval(timeInter);
+			clearInterval(startInter);
+			$('#result-score').text(score);
+			$('#result-percent').text(getPercent());
+			$('.result-wrap').removeClass('hide');
+
+			var shareMsg = '我在游戏<follow>中得了'+score+'分，打败了全国“'+getPercent()+'”的人，骚年不服来战？';
+			shareInfo.shareTitle = shareMsg;
+		}
+
+		function getPercent(){
+			var per = '0%';
+			if(score > 40){per = '100%';}
+			else if(score > 35){per = '95%';}
+			else if(score > 30){per = '90%';}
+			else if(score > 25){per = '85%';}
+			else if(score > 20){per = '60%';}
+			else if(score > 15){per = '40%';}
+			else if(score > 10){per = '30%';}
+			else if(score > 5){per = '12%';}
+			else if(score > 0){per = '1%';}
+
+			return per;
+		}
+
+		function ran(){
+			return parseInt(Math.random()*num+1/num);
+		}
+
+		function updateTime(){
+			$('#time').text(time.toFixed(2));
+			$('#loader').width((time/totalTime)*100+'%');
+		}
+
+		function updateScore(){
+			$('#score').text(score);
+		}
+
+		$('.block').on('touchstart',function(){
+			var $this = $(this);
+			if($(this).hasClass('first')){
+				$(this).addClass('second');
+				score++;
+				updateScore();
+			}
+			setTimeout(function(){$this.removeClass('second')},lastTime);
+		});
+
+		/* 分享功能 */
+		var shareInfo = {
+			appid: '',
+		    imgUrl: 'http://qzonestyle.gtimg.cn/aoi/sola/20131230112721_zNDSJlJLeB.jpg',
+		    lineLink: 'http://m.isux.us/follow/index.html',
+			descContent: '你能抓住多少个格子？有能力来试试！',
+			shareTitle: '决战15秒，看谁的手指更快！'
+		}
+		function shareFriend() {
+		    WeixinJSBridge.invoke('sendAppMessage',{
+		        "appid": shareInfo.appid,
+		        "img_url": shareInfo.imgUrl,
+		        "img_width": "200",
+		        "img_height": "200",
+		        "link": shareInfo.lineLink,
+		        "desc": shareInfo.descContent,
+		        "title": shareInfo.shareTitle
+		    }, function(res) {
+		        //_report('send_msg', res.err_msg);
+		    })
+		}
+		function shareTimeline() {
+		    WeixinJSBridge.invoke('shareTimeline',{
+		        "img_url": shareInfo.imgUrl,
+		        "img_width": "200",
+		        "img_height": "200",
+		        "link": shareInfo.lineLink,
+		        "desc": shareInfo.descContent,
+		        "title": shareInfo.shareTitle
+		    }, function(res) {
+		           //_report('timeline', res.err_msg);
+		    });
+		}
+		function shareWeibo() {
+		    WeixinJSBridge.invoke('shareWeibo',{
+		        "content": shareInfo.descContent,
+		        "url": shareInfo.lineLink,
+		    }, function(res) {
+		        //_report('weibo', res.err_msg);
+		    });
+		}
+		// 当微信内置浏览器完成内部初始化后会触发WeixinJSBridgeReady事件。
+		document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+		    // 发送给好友
+		    WeixinJSBridge.on('menu:share:appmessage', function(argv){
+		        shareFriend();
+		    });
+		    // 分享到朋友圈
+		    WeixinJSBridge.on('menu:share:timeline', function(argv){
+		        shareTimeline();
+		    });
+		    // 分享到微博
+		    WeixinJSBridge.on('menu:share:weibo', function(argv){
+		        shareWeibo();
+		    });
+		}, false);
+	</script>
+</body>
+</html>
